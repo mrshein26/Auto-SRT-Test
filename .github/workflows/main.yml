@@ -1,41 +1,16 @@
-name: Subtitle Auto Generator (AI + Email)
+- name: Install System Dependencies (Tesseract & FFmpeg)
+        run: |
+          sudo apt update 
+          sudo apt install -y ffmpeg tesseract-ocr tesseract-ocr-mya libgl1-mesa-glx
 
-on:
-  workflow_dispatch:
-    inputs:
-      video_url:
-        description: 'Video Link (URL) ထည့်ပါ (ဥပမာ - YouTube/Facebook Link)'
-        required: true
-        default: ''
-      recipient_email:
-        description: 'SRT လက်ခံမည့် အီးမေးလ် ထည့်ပါ'
-        required: true
+      - name: Install Python Libraries (OpenCV, Pytesseract, YT-DLP)
+        run: pip install opencv-python pytesseract yt-dlp
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+      - name: Download Video from URL (YT-DLP)
+        run: yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4" -o "video.mp4" "${{ github.event.inputs.video_url }}"
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install System Dependencies (FFmpeg)
-        run: sudo apt update && sudo apt install -y ffmpeg
-
-      - name: Install Python Libraries (Whisper AI & YT-DLP)
-        run: pip install -U openai-whisper yt-dlp
-
-      - name: Download Audio from URL (YT-DLP)
-        run: yt-dlp -x --audio-format mp3 -o "audio.%(ext)s" "${{ github.event.inputs.video_url }}"
-
-      - name: Generate Subtitles (Whisper AI)
-        # အခမဲ့ဖြစ်၍ မြန်ဆန်စေရန် model "base" ကို အသုံးပြုထားပါသည်။
-        run: whisper audio.mp3 --model base --format srt
+      - name: Extract Myanmar Subtitles (OCR)
+        run: python ocr_extract.py
 
       - name: Send Email with SRT File
         env:
