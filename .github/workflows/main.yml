@@ -1,0 +1,19 @@
+name: My First Automation
+
+# ကိုယ်တိုင် 'Run workflow' ခလုတ်နှိပ်ပြီး Run နိုင်ရန် သတ်မှတ်ခြင်း (WebUI ကနေ လှမ်းခိုင်းဖို့အတွက်လည်း ဒါကိုပဲ သုံးပါတယ်)
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    # GitHub မှ ပေးထားသော အခမဲ့ Linux Server (Ubuntu) ကို အသုံးပြုမည်
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Run a simple script
+        run: |
+          echo "Hello! GitHub Actions ကနေ အလိုအလျောက် အလုပ်လုပ်နေပါပြီ။"
+          echo "ဒီနေရာမှာ Python Script တွေ ထည့်ပြီး Subtitle ထုတ်တာ၊ Mail ပို့တာတွေ ဆက်လုပ်လို့ရပါပြီ။"
