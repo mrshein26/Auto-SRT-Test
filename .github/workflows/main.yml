@@ -1,4 +1,27 @@
-- name: Install System Dependencies (Tesseract & FFmpeg)
+name: Subtitle Auto Generator (OCR to SRT)
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: 'Video Link (URL) ထည့်ပါ'
+        required: true
+        default: ''
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install System Dependencies (Tesseract & FFmpeg)
         run: |
           sudo apt update 
           sudo apt install -y ffmpeg tesseract-ocr tesseract-ocr-mya libgl1-mesa-glx
@@ -12,9 +35,9 @@
       - name: Extract Myanmar Subtitles (OCR)
         run: python ocr_extract.py
 
-      - name: Send Email with SRT File
-        env:
-          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
-          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          RECIPIENT_EMAIL: ${{ github.event.inputs.recipient_email }}
-        run: python send_email.py
+      # ရရှိလာသော SRT ဖိုင်ကို GitHub တွင် Download ဆွဲနိုင်ရန် တင်ပေးခြင်း
+      - name: Upload SRT as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Myanmar_Subtitle_SRT
+          path: audio.srt
