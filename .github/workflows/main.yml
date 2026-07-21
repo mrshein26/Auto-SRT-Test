@@ -1,19 +1,35 @@
-name: My First Automation
+name: Subtitle Auto Generator (Test)
 
-# ကိုယ်တိုင် 'Run workflow' ခလုတ်နှိပ်ပြီး Run နိုင်ရန် သတ်မှတ်ခြင်း (WebUI ကနေ လှမ်းခိုင်းဖို့အတွက်လည်း ဒါကိုပဲ သုံးပါတယ်)
+# WebUI သို့မဟုတ် အပြင်ကနေ Manual Run လို့ရအောင် workflow_dispatch ကို သုံးပါတယ်
 on:
   workflow_dispatch:
+    inputs:
+      video_url:
+        description: 'Video Link (URL) ထည့်ပါ'
+        required: true
+        default: 'https://example.com/test_video.mp4'
 
 jobs:
   build:
-    # GitHub မှ ပေးထားသော အခမဲ့ Linux Server (Ubuntu) ကို အသုံးပြုမည်
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repo
+      - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Run a simple script
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Run Test Python Script
         run: |
-          echo "Hello! GitHub Actions ကနေ အလိုအလျောက် အလုပ်လုပ်နေပါပြီ။"
-          echo "ဒီနေရာမှာ Python Script တွေ ထည့်ပြီး Subtitle ထုတ်တာ၊ Mail ပို့တာတွေ ဆက်လုပ်လို့ရပါပြီ။"
+          echo "ဒေါင်းလုဒ်ဆွဲမည့် လင့်ခ် - ${{ github.event.inputs.video_url }}"
+          python -c "
+          import time
+          print('Hello! စနစ် စတင်နေပါပြီ...')
+          time.sleep(2)
+          print('ဗီဒီယိုကို စစ်ဆေးနေပါသည်...')
+          time.sleep(2)
+          print('ပြီးပါပြီ! ဤနေရာတွင် SRT ထုတ်မည့် Code များ ဆက်လက်ထည့်သွင်းရပါမည်။')
+          "
