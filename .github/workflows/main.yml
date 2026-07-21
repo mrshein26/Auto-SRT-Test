@@ -1,13 +1,15 @@
-name: Subtitle Auto Generator (Test)
+name: Subtitle Auto Generator (AI + Email)
 
-# WebUI သို့မဟုတ် အပြင်ကနေ Manual Run လို့ရအောင် workflow_dispatch ကို သုံးပါတယ်
 on:
   workflow_dispatch:
     inputs:
       video_url:
-        description: 'Video Link (URL) ထည့်ပါ'
+        description: 'Video Link (URL) ထည့်ပါ (ဥပမာ - YouTube/Facebook Link)'
         required: true
-        default: 'https://example.com/test_video.mp4'
+        default: ''
+      recipient_email:
+        description: 'SRT လက်ခံမည့် အီးမေးလ် ထည့်ပါ'
+        required: true
 
 jobs:
   build:
@@ -22,14 +24,22 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Run Test Python Script
-        run: |
-          echo "ဒေါင်းလုဒ်ဆွဲမည့် လင့်ခ် - ${{ github.event.inputs.video_url }}"
-          python -c "
-          import time
-          print('Hello! စနစ် စတင်နေပါပြီ...')
-          time.sleep(2)
-          print('ဗီဒီယိုကို စစ်ဆေးနေပါသည်...')
-          time.sleep(2)
-          print('ပြီးပါပြီ! ဤနေရာတွင် SRT ထုတ်မည့် Code များ ဆက်လက်ထည့်သွင်းရပါမည်။')
-          "
+      - name: Install System Dependencies (FFmpeg)
+        run: sudo apt update && sudo apt install -y ffmpeg
+
+      - name: Install Python Libraries (Whisper AI & YT-DLP)
+        run: pip install -U openai-whisper yt-dlp
+
+      - name: Download Audio from URL (YT-DLP)
+        run: yt-dlp -x --audio-format mp3 -o "audio.%(ext)s" "${{ github.event.inputs.video_url }}"
+
+      - name: Generate Subtitles (Whisper AI)
+        # အခမဲ့ဖြစ်၍ မြန်ဆန်စေရန် model "base" ကို အသုံးပြုထားပါသည်။
+        run: whisper audio.mp3 --model base --format srt
+
+      - name: Send Email with SRT File
+        env:
+          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          RECIPIENT_EMAIL: ${{ github.event.inputs.recipient_email }}
+        run: python send_email.py
